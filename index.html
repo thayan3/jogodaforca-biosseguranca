@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca: Biossegurança e Ciberbioproteção</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@500;600;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0b1329;
+            color: #e2e8f0;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .cyber-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .cyber-btn {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .cyber-btn:hover:not(:disabled) {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.6);
+            border-color: #38bdf8;
+            transform: translateY(-1px);
+        }
+
+        .cyber-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        /* Animações SVG */
+        .hangman-part {
+            stroke-dasharray: 300;
+            stroke-dashoffset: 300;
+            animation: dash 0.5s ease-in-out forwards;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100 p-4 sm:p-6">
+
+    <!-- Header -->
+    <header class="max-w-4xl w-full mx-auto flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400">
+                <i data-lucide="shield-check" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold font-orbitron tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+                    CIBER-FORCA
+                </h1>
+                <p class="text-xs text-slate-400">Biossegurança & Ciberbioproteção</p>
+            </div>
+        </div>
+
+        <!-- Painel de Pontuação -->
+        <div class="flex items-center gap-4 bg-slate-900/80 border border-slate-800 px-4 py-2 rounded-xl">
+            <div class="text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-widest block">Pontos</span>
+                <span id="score-display" class="font-orbitron text-xl text-cyan-400 font-bold">0</span>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div class="text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-widest block">Sequência</span>
+                <span id="streak-display" class="font-orbitron text-xl text-emerald-400 font-bold">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal -->
+    <main class="max-w-4xl w-full mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 my-auto">
+
+        <!-- Lado Esquerdo: Forca SVG com EPI & Categoria -->
+        <section class="md:col-span-5 cyber-card rounded-2xl p-5 flex flex-col items-center justify-between min-h-[360px]">
+            <div class="w-full flex justify-between items-center mb-2">
+                <span id="category-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800">
+                    --
+                </span>
+                <span id="difficulty-badge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
+                    Fácil
+                </span>
+            </div>
+
+            <!-- Ilustração do Operador com EPI na Forca -->
+            <div class="relative w-52 h-60 flex items-center justify-center my-2">
+                <svg class="w-full h-full" viewBox="0 0 200 230" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Estrutura do Suporte de Suporte de Contenção -->
+                    <path d="M 20 210 L 100 210" stroke="#334155" stroke-width="6" />
+                    <path d="M 60 210 L 60 20" stroke="#334155" stroke-width="6" />
+                    <path d="M 60 20 L 140 20" stroke="#334155" stroke-width="6" />
+                    <path d="M 140 20 L 140 45" stroke="#0284c7" stroke-width="3" stroke-dasharray="4" />
+
+                    <!-- BONECO COM EPI (Partes ativadas conforme os erros) -->
+                    
+                    <!-- Erro 1: Capacete / Máscara de Biossegurança com Visor -->
+                    <g id="part-0" class="hidden hangman-part">
+                        <!-- Capacete / Cabeça -->
+                        <circle cx="140" cy="65" r="18" fill="#1e293b" stroke="#e11d48" stroke-width="3" />
+                        <!-- Visor de Proteção Facial Azul -->
+                        <path d="M 130 60 Q 140 52 150 60 L 148 72 Q 140 76 132 72 Z" fill="#0284c7" fill-opacity="0.6" stroke="#38bdf8" stroke-width="1.5"/>
+                        <!-- Filtro/Respirador Frontal -->
+                        <rect x="135" y="74" width="10" height="6" rx="2" fill="#e2e8f0" stroke="#0f172a" stroke-width="1"/>
+                    </g>
+
+                    <!-- Erro 2: Fato de Proteção Biológica (Tronco) -->
+                    <g id="part-1" class="hidden hangman-part">
+                        <!-- Tronco com Fato Amarelo de Proteção/Hazmat -->
+                        <path d="M 125 85 L 155 85 L 152 140 L 128 140 Z" fill="#f59e0b" fill-opacity="0.3" stroke="#f59e0b" stroke-width="3" />
+                        <!-- Símbolo de Risco Biológico no Peito -->
+                        <circle cx="140" cy="105" r="4" fill="#e11d48" />
+                    </g>
+
+                    <!-- Erro 3: Braço Esquerdo + Luva de Nitrilo -->
+                    <g id="part-2" class="hidden hangman-part">
+                        <line x1="126" y1="90" x2="105" y2="120" stroke="#f59e0b" stroke-width="4" />
+                        <!-- Luva Verde -->
+                        <circle cx="103" cy="122" r="5" fill="#10b981" stroke="#059669" stroke-width="1" />
+                    </g>
+
+                    <!-- Erro 4: Braço Direito + Luva de Nitrilo -->
+                    <g id="part-3" class="hidden hangman-part">
+                        <line x1="154" y1="90" x2="175" y2="120" stroke="#f59e0b" stroke-width="4" />
+                        <!-- Luva Verde -->
+                        <circle cx="177" cy="122" r="5" fill="#10b981" stroke="#059669" stroke-width="1" />
+                    </g>
+
+                    <!-- Erro 5: Perna Esquerda + Bota de Proteção -->
+                    <g id="part-4" class="hidden hangman-part">
+                        <line x1="133" y1="140" x2="120" y2="185" stroke="#f59e0b" stroke-width="4" />
+                        <!-- Bota Reforçada -->
+                        <path d="M 112 185 L 122 185 L 122 193 L 110 193 Z" fill="#0f172a" stroke="#e11d48" stroke-width="1.5"/>
+                    </g>
+
+                    <!-- Erro 6: Perna Direita + Bota de Proteção (Fim) -->
+                    <g id="part-5" class="hidden hangman-part">
+                        <line x1="147" y1="140" x2="160" y2="185" stroke="#f59e0b" stroke-width="4" />
+                        <!-- Bota Reforçada -->
+                        <path d="M 158 185 L 168 185 L 170 193 L 158 193 Z" fill="#0f172a" stroke="#e11d48" stroke-width="1.5"/>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- Tentativas Restantes -->
+            <div class="w-full flex items-center justify-between text-sm pt-2 border-t border-slate-800">
+                <span class="text-slate-400">Escudos do EPI:</span>
+                <div id="lives-container" class="flex gap-1">
+                    <!-- Ícones de Escudos inseridos via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Lado Direito: Palavra, Dica e Teclado -->
+        <section class="md:col-span-7 cyber-card rounded-2xl p-5 flex flex-col justify-between min-h-[360px]">
+            
+            <!-- Caixa da Dica Simplificada -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 mb-4">
+                <div class="flex items-center gap-2 text-cyan-400 mb-1">
+                    <i data-lucide="lightbulb" class="w-4 h-4"></i>
+                    <span class="text-xs uppercase font-bold tracking-wider">Dica Direta</span>
+                </div>
+                <p id="hint-text" class="text-sm sm:text-base text-slate-200 leading-relaxed min-h-[40px] flex items-center">
+                    A carregar dica...
+                </p>
+            </div>
+
+            <!-- Palavra Secreta -->
+            <div class="py-6 flex flex-wrap justify-center items-center gap-2 sm:gap-3" id="word-display">
+                <!-- Letras inseridas via JS -->
+            </div>
+
+            <!-- Teclado Virtual -->
+            <div class="grid grid-cols-7 sm:grid-cols-9 gap-1.5 mt-2" id="keyboard">
+                <!-- Botões inseridos via JS -->
+            </div>
+
+            <!-- Botão Próximo -->
+            <div class="mt-4 flex justify-end">
+                <button id="next-btn" onclick="initGame()" class="hidden cyber-btn bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-semibold py-2 px-6 rounded-xl flex items-center gap-2 text-sm shadow-lg">
+                    <span>Próxima Palavra</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Modal de Fim de Jogo -->
+    <div id="modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden z-50">
+        <div class="cyber-card max-w-md w-full rounded-2xl p-6 text-center border-slate-700 shadow-2xl relative overflow-hidden">
+            <div id="modal-icon" class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center">
+                <!-- Ícone inserido via JS -->
+            </div>
+            
+            <h2 id="modal-title" class="text-2xl font-bold font-orbitron mb-2"></h2>
+            <p id="modal-message" class="text-sm text-slate-300 mb-4"></p>
+            
+            <div class="bg-slate-900/80 rounded-xl p-4 mb-6 text-left border border-slate-800">
+                <span class="text-xs text-slate-400 block mb-1">Palavra Correta:</span>
+                <span id="modal-word" class="font-orbitron text-lg text-cyan-400 font-bold tracking-wider block mb-2"></span>
+                <span class="text-xs text-slate-400 block mb-1">O que significa no laboratório/sistema:</span>
+                <p id="modal-description" class="text-xs text-slate-300 italic"></p>
+            </div>
+
+            <button onclick="closeModalAndRestart()" class="w-full cyber-btn bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-3 px-6 rounded-xl text-sm transition-all shadow-lg">
+                CONTINUAR
+            </button>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="max-w-4xl w-full mx-auto text-center text-xs text-slate-500 mt-6">
+        <p>Aprenda biossegurança e segurança digital no laboratório com proteção e EPIs adequados!</p>
+    </footer>
+
+    <!-- Lógica do Jogo -->
+    <script>
+        // Banco de Dados Simplificado (Palavras Mais Fáceis)
+        const WORD_DATABASE = [
+            {
+                word: "MASCARA",
+                category: "EPI de Laboratório",
+                hint: "EPI essencial colocado na cara para cobrir a boca e o nariz contra salpicos ou germes.",
+                description: "Proteção respiratória básica usada para evitar a inalação de agentes biológicos e contaminações."
+            },
+            {
+                word: "LUVAS",
+                category: "EPI de Laboratório",
+                hint: "EPI colocado nas mãos para manusear tubos de ensaio, substâncias e amostras biológicas.",
+                description: "Protegem as mãos contra o contacto direto com vírus, bactérias e químicos nocivos."
+            },
+            {
+                word: "SENHA",
+                category: "Segurança Digital",
+                hint: "Código secreto que introduz no computador para aceder aos dados do laboratório.",
+                description: "Chave de acesso individual que impede que pessoas estranhas entrem nos sistemas da instituição."
+            },
+            {
+                word: "VIRUS",
+                category: "Agente Biológico",
+                hint: "Micro-organismo muito pequeno que pode causar infecções e precisa de contenção no laboratório.",
+                description: "Agente infeccioso que exige protocolos rígidos de biossegurança para ser estudado em segurança."
+            },
+            {
+                word: "VACINA",
+                category: "Proteção",
+                hint: "Substância biológica que ajuda o corpo a criar imunidade contra doenças perigosas.",
+                description: "Importante medida de imunização para proteger os profissionais que trabalham em laboratórios."
+            },
+            {
+                word: "DADOS",
+                category: "Informação",
+                hint: "Informações genéticas guardadas no computador que precisam de ser protegidas contra roubo.",
+                description: "A ciberbioproteção garante que os dados de DNA não sejam roubados nem alterados na rede."
+            },
+            {
+                word: "ALERTA",
+                category: "Segurança",
+                hint: "Aviso emitido quando um vírus é detectado ou quando há um acesso estranho no sistema.",
+                description: "Sinal de alarme que indica uma falha de segurança no ambiente físico ou digital."
+            },
+            {
+                word: "HACKER",
+                category: "Ameaça Digital",
+                hint: "Pessoa que tenta invadir computadores ou redes de laboratórios sem autorização.",
+                description: "Invasor digital que pode tentar roubar pesquisas biológicas ou desativar equipamentos do laboratório."
+            },
+            {
+                word: "JALECO",
+                category: "EPI de Laboratório",
+                hint: "Bata de pano ou material protetor vestida por cima da roupa normal no laboratório.",
+                description: "Barreira física que protege o corpo e as roupas diárias de derrames ou contaminações."
+            },
+            {
+                word: "ISOLAMENTO",
+                category: "Biossegurança",
+                hint: "Ação de separar uma amostra perigosa para não espalhar contaminação.",
+                description: "Medida fundamental para conter surtos de agentes biológicos perigosos em áreas controladas."
+            },
+            {
+                word: "BACTERIA",
+                category: "Agente Biológico",
+                hint: "Micro-organismo vivo de uma só célula que pode ser estudado em placas de laboratório.",
+                description: "Exige manuseio sob capota de segurança biológica para evitar infecções do operador."
+            },
+            {
+                word: "BACKUP",
+                category: "Segurança Digital",
+                hint: "Cópia de segurança de todas as pesquisas e ficheiros guardada num local seguro.",
+                description: "Garante que nenhuma informação científica valiosa se perca caso o computador avarie."
+            },
+            {
+                word: "OCULOS",
+                category: "EPI de Laboratório",
+                hint: "Proteção transparente para os olhos contra salpicos acidentais de líquidos.",
+                description: "EPI indispensável para evitar o contacto de substâncias biológicas com os olhos."
+            },
+            {
+                word: "LOGOUT",
+                category: "Segurança Digital",
+                hint: "Ação de fechar a sessão do computador quando se afasta da sua mesa de trabalho.",
+                description: "Impede que qualquer pessoa use o seu utilizador para aceder a dados sensíveis enquanto não está."
+            },
+            {
+                word: "SABAO",
+                category: "Higiene Pessoal",
+                hint: "Substância usada com água para lavar as mãos e eliminar germes antes e depois do laboratório.",
+                description: "A lavagem correta das mãos é a medida mais simples e eficaz para evitar a contaminação cruzada."
+            },
+            {
+                word: "PIPETAGEM",
+                category: "Procedimento",
+                hint: "Ação de medir e transferir líquidos com um instrumento, proibida de ser feita com a boca.",
+                description: "Deve ser realizada sempre com manipuladores mecânicos para evitar a ingestão acidental de químicos ou patógenos."
+            },
+            {
+                word: "CORROSIVO",
+                category: "Símbolo de Risco",
+                hint: "Classificação de substâncias químicas que podem queimar a pele ou danificar superfícies ao menor contato.",
+                description: "Exige o uso rigoroso de EPIs e manuseio com extremo cuidado em capelas de exaustão."
+            },
+        ];
+
+        // Estado do Jogo
+        let currentWordObj = null;
+        let guessedLetters = new Set();
+        let wrongGuesses = 0;
+        const maxWrongGuesses = 6;
+        let score = 0;
+        let streak = 0;
+        let availableWords = [...WORD_DATABASE];
+
+        // Elementos DOM
+        const wordDisplay = document.getElementById('word-display');
+        const keyboardDisplay = document.getElementById('keyboard');
+        const hintText = document.getElementById('hint-text');
+        const categoryBadge = document.getElementById('category-badge');
+        const livesContainer = document.getElementById('lives-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const streakDisplay = document.getElementById('streak-display');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Elementos do Modal
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        const modalWord = document.getElementById('modal-word');
+        const modalDescription = document.getElementById('modal-description');
+        const modalIcon = document.getElementById('modal-icon');
+
+        // Inicialização
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initGame();
+            setupPhysicalKeyboard();
+        });
+
+        function initGame() {
+            // Reiniciar banco de palavras se acabarem
+            if (availableWords.length === 0) {
+                availableWords = [...WORD_DATABASE];
+            }
+
+            // Selecionar palavra aleatória
+            const randomIndex = Math.floor(Math.random() * availableWords.length);
+            currentWordObj = availableWords[randomIndex];
+            availableWords.splice(randomIndex, 1);
+
+            // Reset de estado
+            guessedLetters.clear();
+            wrongGuesses = 0;
+
+            // Atualizar UI
+            nextBtn.classList.add('hidden');
+            hintText.innerText = currentWordObj.hint;
+            categoryBadge.innerText = currentWordObj.category;
+
+            renderWord();
+            renderKeyboard();
+            updateLives();
+            updateHangmanSVG();
+        }
+
+        // Renderizar Espaços das Letras
+        function renderWord() {
+            wordDisplay.innerHTML = '';
+            const word = currentWordObj.word;
+
+            for (let letter of word) {
+                const letterBox = document.createElement('div');
+                letterBox.className = "w-8 h-10 sm:w-10 sm:h-12 border-b-4 border-cyan-500 flex items-center justify-center font-orbitron text-xl sm:text-2xl font-bold uppercase transition-all duration-300";
+
+                if (guessedLetters.has(letter)) {
+                    letterBox.innerText = letter;
+                    letterBox.classList.add('text-cyan-400', 'border-cyan-400');
+                } else {
+                    letterBox.innerText = '';
+                    letterBox.classList.add('border-slate-600');
+                }
+
+                wordDisplay.appendChild(letterBox);
+            }
+        }
+
+        // Renderizar Teclado
+        function renderKeyboard() {
+            keyboardDisplay.innerHTML = '';
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+            alphabet.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.innerText = letter;
+                btn.className = "cyber-btn bg-slate-800/80 text-slate-200 font-orbitron font-semibold py-2 rounded-lg text-sm sm:text-base flex items-center justify-center";
+                
+                if (guessedLetters.has(letter)) {
+                    btn.disabled = true;
+                    if (currentWordObj.word.includes(letter)) {
+                        btn.classList.add('bg-emerald-950', 'text-emerald-400', 'border-emerald-600');
+                    } else {
+                        btn.classList.add('bg-rose-950/40', 'text-rose-500/50', 'border-rose-900/40');
+                    }
+                } else {
+                    btn.onclick = () => handleGuess(letter);
+                }
+
+                keyboardDisplay.appendChild(btn);
+            });
+        }
+
+        // Lidar com Escolha de Letra
+        function handleGuess(letter) {
+            if (guessedLetters.has(letter) || wrongGuesses >= maxWrongGuesses) return;
+
+            guessedLetters.add(letter);
+
+            if (currentWordObj.word.includes(letter)) {
+                renderWord();
+                checkWin();
+            } else {
+                wrongGuesses++;
+                updateLives();
+                updateHangmanSVG();
+                checkLoss();
+            }
+
+            renderKeyboard();
+        }
+
+        // Teclado Físico
+        function setupPhysicalKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                const char = e.key.toUpperCase();
+                if (/^[A-Z]$/.test(char) && !modal.classList.contains('flex')) {
+                    handleGuess(char);
+                }
+            });
+        }
+
+        // Atualizar Indicador de Vidas/Escudos
+        function updateLives() {
+            livesContainer.innerHTML = '';
+            const remaining = maxWrongGuesses - wrongGuesses;
+
+            for (let i = 0; i < maxWrongGuesses; i++) {
+                const icon = document.createElement('div');
+                if (i < remaining) {
+                    icon.className = "text-cyan-400";
+                    icon.innerHTML = `<i data-lucide="shield" class="w-4 h-4 fill-cyan-400/20"></i>`;
+                } else {
+                    icon.className = "text-slate-700";
+                    icon.innerHTML = `<i data-lucide="shield-alert" class="w-4 h-4"></i>`;
+                }
+                livesContainer.appendChild(icon);
+            }
+            lucide.createIcons();
+        }
+
+        // Mostrar partes do Boneco com EPI conforme erros
+        function updateHangmanSVG() {
+            for (let i = 0; i < maxWrongGuesses; i++) {
+                const part = document.getElementById(`part-${i}`);
+                if (part) {
+                    if (i < wrongGuesses) {
+                        part.classList.remove('hidden');
+                    } else {
+                        part.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        // Vitória
+        function checkWin() {
+            const isWin = currentWordObj.word.split('').every(letter => guessedLetters.has(letter));
+            
+            if (isWin) {
+                score += 100 + (streak * 20);
+                streak++;
+                updateStats();
+                showModal(
+                    true, 
+                    "PROTEÇÃO GARANTIDA!", 
+                    "Muito bem! Conseguiu identificar o conceito e manter a segurança no laboratório.", 
+                    currentWordObj.word, 
+                    currentWordObj.description
+                );
+            }
+        }
+
+        // Derrota
+        function checkLoss() {
+            if (wrongGuesses >= maxWrongGuesses) {
+                streak = 0;
+                updateStats();
+                showModal(
+                    false, 
+                    "ALERTA DE FALHA!", 
+                    "Ocorreu uma falha na proteção do operador e no sistema.", 
+                    currentWordObj.word, 
+                    currentWordObj.description
+                );
+            }
+        }
+
+        function updateStats() {
+            scoreDisplay.innerText = score;
+            streakDisplay.innerText = streak;
+        }
+
+        function showModal(isWin, title, message, word, description) {
+            modalTitle.innerText = title;
+            modalMessage.innerText = message;
+            modalWord.innerText = word;
+            modalDescription.innerText = description;
+
+            if (isWin) {
+                modalTitle.className = "text-2xl font-bold font-orbitron mb-2 text-emerald-400";
+                modalIcon.className = "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-emerald-500/20 text-emerald-400 border border-emerald-500/40";
+                modalIcon.innerHTML = `<i data-lucide="check-circle-2" class="w-10 h-10"></i>`;
+            } else {
+                modalTitle.className = "text-2xl font-bold font-orbitron mb-2 text-rose-500";
+                modalIcon.className = "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center bg-rose-500/20 text-rose-500 border border-rose-500/40";
+                modalIcon.innerHTML = `<i data-lucide="shield-alert" class="w-10 h-10"></i>`;
+            }
+
+            lucide.createIcons();
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModalAndRestart() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            initGame();
+        }
+    </script>
+</body>
+</html>
+
+
