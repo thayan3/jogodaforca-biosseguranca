@@ -214,8 +214,9 @@
             
             <h2 id="modal-title" class="text-2xl font-bold font-orbitron mb-2"></h2>
             <p id="modal-message" class="text-sm text-slate-300 mb-4"></p>
+            <p id="modal-message" class="text-sm text-slate-300 mb-4" aria-live="polite"></p>
             
-            <div class="bg-slate-900/80 rounded-xl p-4 mb-6 text-left border border-slate-800">
+            <div id="modal-word-details" class="bg-slate-900/80 rounded-xl p-4 mb-6 text-left border border-slate-800">
                 <span class="text-xs text-slate-400 block mb-1">Palavra Correta:</span>
                 <span id="modal-word" class="font-orbitron text-lg text-cyan-400 font-bold tracking-wider block mb-2"></span>
                 <span class="text-xs text-slate-400 block mb-1">O que significa no laboratório/sistema:</span>
@@ -411,10 +412,12 @@
         // Estado do Jogo
         let currentWordObj = null;
         let guessedLetters = new Set();
+        let correctlyGuessedWords = new Set();
         let wrongGuesses = 0;
         const maxWrongGuesses = 6;
         let score = 0;
         let streak = 0;
+        let allWordsCompleted = false;
         let availableWords = [...WORD_DATABASE];
 
         // Elementos DOM
@@ -435,6 +438,8 @@
         const modalWord = document.getElementById('modal-word');
         const modalDescription = document.getElementById('modal-description');
         const modalIcon = document.getElementById('modal-icon');
+        const modalWordDetails = document.getElementById('modal-word-details');
+        const modalActionButton = modal.querySelector('button');
 
         // Inicialização
         window.addEventListener('DOMContentLoaded', () => {
@@ -593,13 +598,17 @@
             const isWin = currentWordObj.word.split('').every(letter => guessedLetters.has(letter));
             
             if (isWin) {
+                correctlyGuessedWords.add(currentWordObj.word);
+                allWordsCompleted = WORD_DATABASE.every(({ word }) => correctlyGuessedWords.has(word));
                 score += 100 + (streak * 20);
                 streak++;
                 updateStats();
                 showModal(
                     true, 
-                    "PROTEÇÃO GARANTIDA!", 
-                    "Muito bem! Conseguiu identificar o conceito e manter a segurança no laboratório.", 
+                    allWordsCompleted ? "OBJETIVO CONCLUÍDO!" : "PROTEÇÃO GARANTIDA!", 
+                    allWordsCompleted
+                        ? "Parabéns! Você acertou todas as palavras. Este jogo tem como finalidade sensibilizar sobre biossegurança e ciberbioproteção, reforçando práticas seguras no laboratório e a proteção de dados e sistemas."
+                        : "Muito bem! Conseguiu identificar o conceito e manter a segurança no laboratório.", 
                     currentWordObj.word, 
                     currentWordObj.description
                 );
@@ -631,6 +640,12 @@
             modalMessage.innerText = message;
             modalWord.innerText = word;
             modalDescription.innerText = description;
+            const isFinalMessage = isWin && allWordsCompleted;
+            modalWordDetails.classList.toggle('hidden', isFinalMessage);
+            modalMessage.className = isFinalMessage
+                ? "text-base text-cyan-100 leading-relaxed mb-6"
+                : "text-sm text-slate-300 mb-4";
+            modalActionButton.innerText = isFinalMessage ? "REINICIAR JOGO" : "CONTINUAR";
 
             if (isWin) {
                 modalTitle.className = "text-2xl font-bold font-orbitron mb-2 text-emerald-400";
@@ -650,6 +665,14 @@
         function closeModalAndRestart() {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
+            if (allWordsCompleted) {
+                correctlyGuessedWords.clear();
+                availableWords = [...WORD_DATABASE];
+                score = 0;
+                streak = 0;
+                allWordsCompleted = false;
+                updateStats();
+            }
             initGame();
         }
     </script>
